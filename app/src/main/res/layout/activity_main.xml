@@ -75,17 +75,17 @@
             android:orientation="vertical">
 
             <RadioButton
-                android:id="@+id/port2408"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="2408 (default)" />
-
-            <RadioButton
                 android:id="@+id/port4500"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="4500" />
+                android:checked="true"
+                android:text="4500 (recommended)" />
+
+            <RadioButton
+                android:id="@+id/port2408"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2408 (WARP default)" />
 
             <RadioButton
                 android:id="@+id/port500"
