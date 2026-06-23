@@ -98,6 +98,18 @@ object WarpManager {
         if (existing != null) {
             return Registration(existing, p.getString(K_V6, null))
         }
+        // Preferred: a pre-registered account baked in at build time. This lets
+        // the app work on networks that block WARP's registration endpoint
+        // (e.g. campus Wi-Fi that intercepts api.cloudflareclient.com).
+        if (BuildConfig.WARP_PRIVATE_KEY.isNotBlank()) {
+            val v6 = BuildConfig.WARP_ADDRESS_V6.takeIf { it.isNotBlank() }
+            p.edit()
+                .putString(K_PRIV, BuildConfig.WARP_PRIVATE_KEY)
+                .putString(K_V6, v6)
+                .apply()
+            return Registration(BuildConfig.WARP_PRIVATE_KEY, v6)
+        }
+        // Fallback: register a fresh account at runtime (works off-campus).
         return registerNewAccount(ctx)
     }
 

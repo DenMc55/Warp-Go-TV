@@ -13,6 +13,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        // Pre-registered WARP account injected from CI secrets (empty for local
+        // builds, in which case the app registers its own account at runtime).
+        buildConfigField("String", "WARP_PRIVATE_KEY", "\"${System.getenv("WARP_PRIVATE_KEY") ?: ""}\"")
+        buildConfigField("String", "WARP_ADDRESS_V6", "\"${System.getenv("WARP_ADDRESS_V6") ?: ""}\"")
     }
 
     buildTypes {
@@ -34,6 +39,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     lint {
         abortOnError = false

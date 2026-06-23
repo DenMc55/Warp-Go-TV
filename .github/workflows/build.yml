@@ -30,6 +30,9 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build debug APK
+        env:
+          WARP_PRIVATE_KEY: ${{ secrets.WARP_PRIVATE_KEY }}
+          WARP_ADDRESS_V6: ${{ secrets.WARP_ADDRESS_V6 }}
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
