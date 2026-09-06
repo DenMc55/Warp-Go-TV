@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WarpGo</string>
+    <string name="app_name">Warp Go TV</string>
+    <string name="subtitle">Cloudflare WARP tunnel</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="connection_port">Connection port</string>
+    <string name="port_help">If a network blocks WARP, try another port. 2408 is the default; 4500 and 500 are usually left open by firewalls.</string>
+    <string name="port_4500">4500 (recommended)</string>
+    <string name="port_2408">2408 (WARP default)</string>
+    <string name="port_500">500</string>
+    <string name="auto_connect_boot">Auto-connect on boot</string>
+    <string name="auto_connect_help">Connect once manually first so Android can grant VPN permission.</string>
+    <string name="reset_account">Reset WARP account</string>
+    <string name="port_switch_note">Switching ports requires Disconnect then Connect again.</string>
 </resources>

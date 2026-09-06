@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="warp_orange">#F6821F</color>
+    <color name="focus_yellow">#FFD54A</color>
+    <color name="tv_navy">#07182E</color>
+    <color name="tv_navy_mid">#0D3158</color>
+    <color name="tv_blue_glow">#125FA8</color>
+    <color name="text_primary">#F7F9FC</color>
+    <color name="text_secondary">#B8C3D1</color>
+    <color name="status_green">#42D66B</color>
+    <color name="status_red">#FF5252</color>
+    <color name="status_amber">#FFD54A</color>
     <color name="ic_launcher_background">#F6821F</color>
 </resources>
