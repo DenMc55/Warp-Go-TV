@@ -14,8 +14,8 @@
         android:gravity="center_horizontal"
         android:paddingStart="48dp"
         android:paddingEnd="48dp"
-        android:paddingTop="28dp"
-        android:paddingBottom="36dp">
+        android:paddingTop="22dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:text="@string/subtitle"
             android:textColor="@color/text_secondary"
             android:textSize="16sp" />
@@ -37,7 +37,7 @@
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="22dp"
             android:gravity="center"
             android:text="● Disconnected"
             android:textColor="@color/text_primary"
@@ -48,141 +48,186 @@
             android:id="@+id/progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:visibility="gone" />
 
         <Button
             android:id="@+id/toggleButton"
             android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:layout_marginTop="24dp"
+            android:layout_height="68dp"
+            android:layout_marginTop="18dp"
             android:background="@drawable/toggle_button_background"
             android:focusable="true"
             android:focusableInTouchMode="false"
+            android:focusedByDefault="true"
+            android:nextFocusDown="@id/autoConnectSwitch"
             android:text="@string/connect"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <TextView
+        <!-- TV layout: ports on the left, everyday controls on the right. -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="34dp"
-            android:text="@string/connection_port"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="24dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/port_help"
-            android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:orientation="vertical">
 
-        <RadioGroup
-            android:id="@+id/portGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_port"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <RadioButton
-                android:id="@+id/port4500"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@drawable/focus_row"
-                android:buttonTint="@color/radio_tint"
-                android:checked="true"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/port_4500"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/port_help_short"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
 
-            <RadioButton
-                android:id="@+id/port2408"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/focus_row"
-                android:buttonTint="@color/radio_tint"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/port_2408"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp" />
+                <RadioGroup
+                    android:id="@+id/portGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/port500"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/focus_row"
-                android:buttonTint="@color/radio_tint"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/port_500"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp" />
-        </RadioGroup>
+                    <RadioButton
+                        android:id="@+id/port4500"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/focus_row"
+                        android:buttonTint="@color/radio_tint"
+                        android:checked="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
+                        android:gravity="center_vertical"
+                        android:nextFocusRight="@id/autoConnectSwitch"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/port_4500"
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/autoConnectSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/focus_row"
-            android:focusable="true"
-            android:focusableInTouchMode="false"
-            android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:text="@string/auto_connect_boot"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            app:thumbTint="@color/switch_thumb_tint"
-            app:trackTint="@color/switch_track_tint" />
+                    <RadioButton
+                        android:id="@+id/port2408"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="3dp"
+                        android:background="@drawable/focus_row"
+                        android:buttonTint="@color/radio_tint"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
+                        android:gravity="center_vertical"
+                        android:nextFocusRight="@id/autoConnectSwitch"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/port_2408"
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/auto_connect_help"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp" />
+                    <RadioButton
+                        android:id="@+id/port500"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="3dp"
+                        android:background="@drawable/focus_row"
+                        android:buttonTint="@color/radio_tint"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
+                        android:gravity="center_vertical"
+                        android:nextFocusRight="@id/resetButton"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/port_500"
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp" />
+                </RadioGroup>
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/resetButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/focus_row"
-            android:focusable="true"
-            android:focusableInTouchMode="false"
-            android:text="@string/reset_account"
-            android:textAllCaps="false"
-            android:textColor="@color/warp_orange"
-            android:textSize="16sp" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="2" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/port_switch_note"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tv_controls"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/autoConnectSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/focus_row"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:gravity="center_vertical"
+                    android:nextFocusUp="@id/toggleButton"
+                    android:nextFocusLeft="@id/port4500"
+                    android:nextFocusDown="@id/resetButton"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="@string/auto_connect_boot"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    app:thumbTint="@color/switch_thumb_tint"
+                    app:trackTint="@color/switch_track_tint" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="@string/auto_connect_help_short"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/resetButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/focus_row"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:nextFocusUp="@id/autoConnectSwitch"
+                    android:nextFocusLeft="@id/port500"
+                    android:text="@string/reset_account"
+                    android:textAllCaps="false"
+                    android:textColor="@color/warp_orange"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/port_switch_note"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
