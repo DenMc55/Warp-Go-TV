@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "WarpGo"
+rootProject.name = "WarpGoTV"
 include(":app")
