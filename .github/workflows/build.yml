@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Warp Go TV APK
 
 on:
   push:
@@ -30,29 +30,29 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build debug APK
-        env:
-          WARP_PRIVATE_KEY: ${{ secrets.WARP_PRIVATE_KEY }}
-          WARP_ADDRESS_V6: ${{ secrets.WARP_ADDRESS_V6 }}
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/WarpGo-v1.0.${{ github.run_number }}.apk
+          cp app/build/outputs/apk/debug/app-debug.apk out/Warp-Go-TV-v1.1.${{ github.run_number }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WarpGo-apk
+          name: Warp-Go-TV-apk
           path: out/*.apk
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: WarpGo v1.0.${{ github.run_number }}
+          tag_name: warp-go-tv-v1.1.${{ github.run_number }}
+          name: Warp Go TV v1.1.${{ github.run_number }}
           body: |
-            Automated build of WarpGo.
-            Download the `.apk` below and install it on your phone
-            (you may need to allow "install from unknown sources").
+            Automated build of Warp Go TV.
+
+            TV-first Cloudflare WARP client with D-pad focus improvements,
+            dark theme, clear connection status, and auto-connect on boot.
+
+            Download the `.apk` below and sideload it onto your Android or Fire TV device.
           files: out/*.apk
