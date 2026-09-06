@@ -8,11 +8,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.iknalos.warpgo"
+        applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1-tv"
 
         // Pre-registered WARP account injected from CI secrets (empty for local
         // builds, in which case the app registers its own account at runtime).
