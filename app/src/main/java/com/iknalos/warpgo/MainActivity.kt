@@ -48,8 +48,11 @@ class MainActivity : AppCompatActivity() {
             setStatus("Registration cleared", StatusState.DISCONNECTED)
         }
 
-        // TV-first: land on the one control most people need.
-        binding.toggleButton.requestFocus()
+        // TV-first: land on the one control most people need. post() waits
+        // until Fire TV has completed the first layout/focus pass.
+        binding.toggleButton.post {
+            binding.toggleButton.requestFocus()
+        }
         refreshState()
     }
 

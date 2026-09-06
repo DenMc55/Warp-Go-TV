@@ -4,6 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -11,24 +18,24 @@ class BootReceiver : BroadcastReceiver() {
         if (!AppPreferences.autoConnectOnBoot(context)) return
         if (!WarpManager.isRegistered(context)) return
 
-        // Android only allows silent reconnect if the user has already granted
-        // this app VPN permission during a normal manual connection.
+        // A previous manual connection must have granted VPN permission.
+        // Android can only show the permission dialog from the foreground UI.
         if (VpnService.prepare(context) != null) return
 
-        val pendingResult = goAsync()
-        Thread {
-            try {
-                // Give Wi-Fi / Ethernet a moment to come up after boot.
-                Thread.sleep(5000)
-                if (!WarpManager.isUp(context)) {
-                    WarpManager.connect(context.applicationContext, AppPreferences.selectedPort(context))
-                }
-            } catch (_: Exception) {
-                // The next manual launch can reconnect if the network was not
-                // ready yet. Avoid crashing the boot receiver.
-            } finally {
-                pendingResult.finish()
-            }
-        }.start()
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val work = OneTimeWorkRequestBuilder<AutoConnectWorker>()
+            .setConstraints(constraints)
+            .setInitialDelay(3, TimeUnit.SECONDS)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
+            AutoConnectWorker.WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            work
+        )
     }
 }
