@@ -11,8 +11,8 @@ android {
         applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1-tv"
+        versionCode = 3
+        versionName = "1.2-tv"
 
         // Pre-registered WARP account injected from CI secrets (empty for local
         // builds, in which case the app registers its own account at runtime).
@@ -51,6 +51,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.wireguard.android:tunnel:1.0.20230706")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
