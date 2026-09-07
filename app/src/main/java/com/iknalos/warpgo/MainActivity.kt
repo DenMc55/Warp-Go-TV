@@ -7,18 +7,34 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.view.View
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.iknalos.warpgo.databinding.ActivityMainBinding
+import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private var busy = false
+    private var isTvMode = true
+
+    private lateinit var statusText: TextView
+    private lateinit var progress: ProgressBar
+    private lateinit var toggleButton: Button
+    private lateinit var portGroup: RadioGroup
+    private lateinit var port4500: RadioButton
+    private lateinit var port2408: RadioButton
+    private lateinit var port500: RadioButton
+    private lateinit var autoConnectSwitch: MaterialSwitch
+    private lateinit var resetButton: Button
 
     private val vpnPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -32,51 +48,101 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
-        restorePreferences()
-
-        binding.toggleButton.setOnClickListener { onToggle() }
-        binding.portGroup.setOnCheckedChangeListener { _, _ ->
-            AppPreferences.setSelectedPort(this, selectedPort())
-        }
-        binding.autoConnectSwitch.setOnCheckedChangeListener { _, checked ->
-            AppPreferences.setAutoConnectOnBoot(this, checked)
-        }
-        binding.resetButton.setOnClickListener {
-            WarpManager.resetRegistration(this)
-            setStatus("Registration cleared", StatusState.DISCONNECTED)
+        if (!AppPreferences.hasUiMode(this)) {
+            showFirstRunSetup()
+            return
         }
 
-        binding.toggleButton.setOnFocusChangeListener { _, hasFocus ->
-            updateToggleFocusStyle(hasFocus)
-        }
-
-        // TV-first: force the initial D-pad focus onto Connect/Disconnect after
-        // Fire TV has completed its first layout/focus pass.
-        focusToggleButton()
-        refreshState()
+        showSelectedInterface()
     }
 
     override fun onResume() {
         super.onResume()
+        if (::toggleButton.isInitialized) {
+            refreshState()
+            if (isTvMode) focusToggleButton()
+        }
+    }
+
+    private fun showFirstRunSetup() {
+        setContentView(R.layout.activity_setup)
+
+        val modeGroup = findViewById<RadioGroup>(R.id.modeGroup)
+        val modeTv = findViewById<RadioButton>(R.id.modeTv)
+        val modeMobile = findViewById<RadioButton>(R.id.modeMobile)
+        val okButton = findViewById<Button>(R.id.modeOkButton)
+
+        // Deliberately default to TV. On a television the mobile layout can look
+        // usable while hiding TV-only controls below the fold; the reverse is obvious.
+        modeTv.isChecked = true
+        modeTv.requestFocus()
+
+        okButton.setOnClickListener {
+            val mode = if (modeGroup.checkedRadioButtonId == modeMobile.id) {
+                AppPreferences.MODE_MOBILE
+            } else {
+                AppPreferences.MODE_TV
+            }
+            AppPreferences.setUiMode(this, mode)
+            showSelectedInterface()
+        }
+    }
+
+    private fun showSelectedInterface() {
+        isTvMode = AppPreferences.uiMode(this) == AppPreferences.MODE_TV
+        setContentView(if (isTvMode) R.layout.activity_tv else R.layout.activity_mobile)
+        bindMainViews()
+        wireMainControls()
+        restorePreferences()
         refreshState()
-        focusToggleButton()
+        if (isTvMode) focusToggleButton()
+    }
+
+    private fun bindMainViews() {
+        statusText = findViewById(R.id.statusText)
+        progress = findViewById(R.id.progress)
+        toggleButton = findViewById(R.id.toggleButton)
+        portGroup = findViewById(R.id.portGroup)
+        port4500 = findViewById(R.id.port4500)
+        port2408 = findViewById(R.id.port2408)
+        port500 = findViewById(R.id.port500)
+        autoConnectSwitch = findViewById(R.id.autoConnectSwitch)
+        resetButton = findViewById(R.id.resetButton)
+    }
+
+    private fun wireMainControls() {
+        toggleButton.setOnClickListener { onToggle() }
+        portGroup.setOnCheckedChangeListener { _, _ ->
+            AppPreferences.setSelectedPort(this, selectedPort())
+        }
+        autoConnectSwitch.setOnCheckedChangeListener { _, checked ->
+            AppPreferences.setAutoConnectOnBoot(this, checked)
+        }
+        resetButton.setOnClickListener {
+            WarpManager.resetRegistration(this)
+            setStatus("Registration cleared", StatusState.DISCONNECTED)
+        }
+
+        if (isTvMode) {
+            toggleButton.setOnFocusChangeListener { _, hasFocus ->
+                updateToggleFocusStyle(hasFocus)
+            }
+        }
     }
 
     private fun restorePreferences() {
         when (AppPreferences.selectedPort(this)) {
-            2408 -> binding.port2408.isChecked = true
-            500 -> binding.port500.isChecked = true
-            else -> binding.port4500.isChecked = true
+            2408 -> port2408.isChecked = true
+            500 -> port500.isChecked = true
+            else -> port4500.isChecked = true
         }
-        binding.autoConnectSwitch.isChecked = AppPreferences.autoConnectOnBoot(this)
+        autoConnectSwitch.isChecked = AppPreferences.autoConnectOnBoot(this)
     }
 
     private fun refreshState() {
         val up = WarpManager.isUp(this)
-        binding.toggleButton.text = getString(if (up) R.string.disconnect else R.string.connect)
+        toggleButton.text = getString(if (up) R.string.disconnect else R.string.connect)
         if (up) {
             setStatus("Connected  ·  port ${selectedPort()}", StatusState.CONNECTED)
         } else {
@@ -84,9 +150,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectedPort(): Int = when (binding.portGroup.checkedRadioButtonId) {
-        binding.port4500.id -> 4500
-        binding.port500.id -> 500
+    private fun selectedPort(): Int = when (portGroup.checkedRadioButtonId) {
+        port4500.id -> 4500
+        port500.id -> 500
         else -> 2408
     }
 
@@ -118,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
-                focusToggleButton()
+                if (isTvMode) focusToggleButton()
             }
         }
     }
@@ -134,36 +200,36 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
-                focusToggleButton()
+                if (isTvMode) focusToggleButton()
             }
         }
     }
 
     private fun refreshButtonOnly() {
-        binding.toggleButton.text = getString(
+        toggleButton.text = getString(
             if (WarpManager.isUp(this)) R.string.disconnect else R.string.connect
         )
     }
 
     private fun setBusy(value: Boolean) {
         busy = value
-        // Do not disable the button: Fire TV moves focus to the next control as
-        // soon as a focused view is disabled. busy still blocks repeat presses.
-        binding.toggleButton.isEnabled = true
-        binding.progress.visibility = if (value) android.view.View.VISIBLE else android.view.View.GONE
+        // Do not disable the button in TV mode: disabling a focused view makes
+        // Fire TV immediately move focus to the next available control.
+        toggleButton.isEnabled = true
+        progress.visibility = if (value) View.VISIBLE else View.GONE
     }
 
     private fun focusToggleButton() {
-        binding.toggleButton.postDelayed({
-            binding.toggleButton.requestFocus()
+        toggleButton.postDelayed({
+            toggleButton.requestFocus()
             updateToggleFocusStyle(true)
         }, 250L)
     }
 
     private fun updateToggleFocusStyle(hasFocus: Boolean) {
         val color = getColor(if (hasFocus) R.color.focus_yellow else R.color.warp_orange)
-        binding.toggleButton.backgroundTintList = ColorStateList.valueOf(color)
-        binding.toggleButton.setTextColor(
+        toggleButton.backgroundTintList = ColorStateList.valueOf(color)
+        toggleButton.setTextColor(
             getColor(if (hasFocus) R.color.focus_text_dark else R.color.text_primary)
         )
     }
@@ -181,8 +247,8 @@ class MainActivity : AppCompatActivity() {
             1,
             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         )
-        binding.statusText.text = display
-        binding.statusText.setTextColor(Color.WHITE)
+        statusText.text = display
+        statusText.setTextColor(Color.WHITE)
     }
 
     private enum class StatusState {
