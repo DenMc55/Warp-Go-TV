@@ -2,6 +2,7 @@
 <resources>
     <color name="warp_orange">#F6821F</color>
     <color name="focus_yellow">#FFD54A</color>
+    <color name="focus_text_dark">#17202A</color>
     <color name="tv_navy">#07182E</color>
     <color name="tv_navy_mid">#0D3158</color>
     <color name="tv_blue_glow">#125FA8</color>
