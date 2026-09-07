@@ -11,18 +11,30 @@ android {
         applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3-tv"
+        versionCode = 5
+        versionName = "1.4"
 
-        // Pre-registered WARP account injected from CI secrets (empty for local
-        // builds, in which case the app registers its own account at runtime).
+        // Optional pre-registered WARP account injected from CI secrets.
         buildConfigField("String", "WARP_PRIVATE_KEY", "\"${System.getenv("WARP_PRIVATE_KEY") ?: ""}\"")
         buildConfigField("String", "WARP_ADDRESS_V6", "\"${System.getenv("WARP_ADDRESS_V6") ?: ""}\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrBlank()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -38,7 +50,7 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
-        viewBinding = true
+        viewBinding = false
         buildConfig = true
     }
     lint {
