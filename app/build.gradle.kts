@@ -11,8 +11,8 @@ android {
         applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2-tv"
+        versionCode = 4
+        versionName = "1.3-tv"
 
         // Pre-registered WARP account injected from CI secrets (empty for local
         // builds, in which case the app registers its own account at runtime).
