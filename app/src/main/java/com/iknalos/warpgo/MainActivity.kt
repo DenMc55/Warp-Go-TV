@@ -1,5 +1,6 @@
 package com.iknalos.warpgo
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.VpnService
 import android.os.Bundle
@@ -48,17 +49,20 @@ class MainActivity : AppCompatActivity() {
             setStatus("Registration cleared", StatusState.DISCONNECTED)
         }
 
-        // TV-first: land on the one control most people need. post() waits
-        // until Fire TV has completed the first layout/focus pass.
-        binding.toggleButton.post {
-            binding.toggleButton.requestFocus()
+        binding.toggleButton.setOnFocusChangeListener { _, hasFocus ->
+            updateToggleFocusStyle(hasFocus)
         }
+
+        // TV-first: force the initial D-pad focus onto Connect/Disconnect after
+        // Fire TV has completed its first layout/focus pass.
+        focusToggleButton()
         refreshState()
     }
 
     override fun onResume() {
         super.onResume()
         refreshState()
+        focusToggleButton()
     }
 
     private fun restorePreferences() {
@@ -114,6 +118,7 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
+                focusToggleButton()
             }
         }
     }
@@ -129,6 +134,7 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
+                focusToggleButton()
             }
         }
     }
@@ -141,8 +147,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun setBusy(value: Boolean) {
         busy = value
-        binding.toggleButton.isEnabled = !value
+        // Do not disable the button: Fire TV moves focus to the next control as
+        // soon as a focused view is disabled. busy still blocks repeat presses.
+        binding.toggleButton.isEnabled = true
         binding.progress.visibility = if (value) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun focusToggleButton() {
+        binding.toggleButton.postDelayed({
+            binding.toggleButton.requestFocus()
+            updateToggleFocusStyle(true)
+        }, 250L)
+    }
+
+    private fun updateToggleFocusStyle(hasFocus: Boolean) {
+        val color = getColor(if (hasFocus) R.color.focus_yellow else R.color.warp_orange)
+        binding.toggleButton.backgroundTintList = ColorStateList.valueOf(color)
+        binding.toggleButton.setTextColor(
+            getColor(if (hasFocus) R.color.focus_text_dark else R.color.text_primary)
+        )
     }
 
     private fun setStatus(text: String, state: StatusState) {

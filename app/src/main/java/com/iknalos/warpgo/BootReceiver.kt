@@ -4,13 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
+import android.os.Build
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -18,24 +12,15 @@ class BootReceiver : BroadcastReceiver() {
         if (!AppPreferences.autoConnectOnBoot(context)) return
         if (!WarpManager.isRegistered(context)) return
 
-        // A previous manual connection must have granted VPN permission.
-        // Android can only show the permission dialog from the foreground UI.
+        // Android can only display the VPN permission prompt from the UI.
+        // Auto-connect therefore requires one successful manual connection first.
         if (VpnService.prepare(context) != null) return
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val work = OneTimeWorkRequestBuilder<AutoConnectWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(3, TimeUnit.SECONDS)
-            .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS)
-            .build()
-
-        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
-            AutoConnectWorker.WORK_NAME,
-            ExistingWorkPolicy.REPLACE,
-            work
-        )
+        val serviceIntent = Intent(context, AutoConnectService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        } else {
+            context.startService(serviceIntent)
+        }
     }
 }
