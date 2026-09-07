@@ -12,4 +12,5 @@
     <color name="status_red">#FF5252</color>
     <color name="status_amber">#FFD54A</color>
     <color name="ic_launcher_background">#F6821F</color>
+    <color name="launcher_blue">#0B3A8F</color>
 </resources>

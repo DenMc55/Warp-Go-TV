@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Warp Go TV</string>
+    <string name="tv_title">Warp Go TV</string>
+    <string name="mobile_title">Warp Go</string>
     <string name="subtitle">Cloudflare WARP tunnel</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
@@ -16,4 +18,9 @@
     <string name="auto_connect_help_short">Requires one manual connection first.</string>
     <string name="reset_account">Reset WARP account</string>
     <string name="port_switch_note">Port changes take effect on the next connection.</string>
+    <string name="choose_interface">Choose your interface</string>
+    <string name="choose_interface_help">Choose once. Clearing the app data or reinstalling will show this screen again.</string>
+    <string name="mode_tv">TV</string>
+    <string name="mode_mobile">Mobile</string>
+    <string name="ok">OK</string>
 </resources>
