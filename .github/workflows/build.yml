@@ -29,13 +29,31 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Restore permanent signing key
+        shell: bash
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "SIGNING_KEYSTORE_BASE64 secret is missing. See SIGNING-SETUP.txt."
+            exit 1
+          fi
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/warp-go-tv-release.jks"
+
+      - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/warp-go-tv-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          WARP_PRIVATE_KEY: ${{ secrets.WARP_PRIVATE_KEY }}
+          WARP_ADDRESS_V6: ${{ secrets.WARP_ADDRESS_V6 }}
+        run: gradle assembleRelease --no-daemon --stacktrace
 
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/Warp-Go-TV-v1.3.${{ github.run_number }}.apk
+          cp app/build/outputs/apk/release/app-release.apk out/Warp-Go-TV-v1.4.${{ github.run_number }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -46,13 +64,18 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: warp-go-tv-v1.3.${{ github.run_number }}
-          name: Warp Go TV v1.3.${{ github.run_number }}
+          tag_name: warp-go-tv-v1.4.${{ github.run_number }}
+          name: Warp Go TV v1.4.${{ github.run_number }}
           body: |
-            Automated build of Warp Go TV.
+            Automated signed release build of Warp Go TV.
 
-            TV-first Cloudflare WARP client with D-pad focus improvements,
-            dark theme, clear connection status, compact two-column TV layout, 40-second delayed boot reconnect with retries, and persistent Connect-button focus.
+            New in v1.4:
+            - First-run TV / Mobile interface selector, defaulting to TV.
+            - TV interface keeps the proven Fire TV layout and D-pad behaviour.
+            - Mobile interface uses a single-column touch layout with the same blue/orange branding.
+            - Auto-connect on boot is available in both interfaces.
+            - New Warp Go logo and launcher icon.
+            - Permanent release signing so future updates can install over this build.
 
-            Download the `.apk` below and sideload it onto your Android or Fire TV device.
+            Important: v1.4 uses a new permanent release signing key. Because previous builds used temporary debug signing, uninstall the old build once before installing v1.4. Future signed versions can update v1.4 in place.
           files: out/*.apk
