@@ -35,7 +35,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/Warp-Go-TV-v1.2.${{ github.run_number }}.apk
+          cp app/build/outputs/apk/debug/app-debug.apk out/Warp-Go-TV-v1.3.${{ github.run_number }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -46,13 +46,13 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: warp-go-tv-v1.2.${{ github.run_number }}
-          name: Warp Go TV v1.2.${{ github.run_number }}
+          tag_name: warp-go-tv-v1.3.${{ github.run_number }}
+          name: Warp Go TV v1.3.${{ github.run_number }}
           body: |
             Automated build of Warp Go TV.
 
             TV-first Cloudflare WARP client with D-pad focus improvements,
-            dark theme, clear connection status, compact two-column TV layout, and reliable auto-connect on boot.
+            dark theme, clear connection status, compact two-column TV layout, 40-second delayed boot reconnect with retries, and persistent Connect-button focus.
 
             Download the `.apk` below and sideload it onto your Android or Fire TV device.
           files: out/*.apk
