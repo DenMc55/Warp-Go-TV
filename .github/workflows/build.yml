@@ -53,7 +53,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/Warp-Go-TV-v1.4.${{ github.run_number }}.apk
+          cp app/build/outputs/apk/release/app-release.apk out/Warp-Go-TV-v1.5.${{ github.run_number }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -64,18 +64,19 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: warp-go-tv-v1.4.${{ github.run_number }}
-          name: Warp Go TV v1.4.${{ github.run_number }}
+          tag_name: warp-go-tv-v1.5.${{ github.run_number }}
+          name: Warp Go TV v1.5.${{ github.run_number }}
           body: |
             Automated signed release build of Warp Go TV.
 
-            New in v1.4:
-            - First-run TV / Mobile interface selector, defaulting to TV.
-            - TV interface keeps the proven Fire TV layout and D-pad behaviour.
-            - Mobile interface uses a single-column touch layout with the same blue/orange branding.
-            - Auto-connect on boot is available in both interfaces.
-            - New Warp Go logo and launcher icon.
-            - Permanent release signing so future updates can install over this build.
+            New in v1.5:
+            - Remembers the user's last manual Connect / Disconnect state.
+            - Auto-connect ON always requests WARP after boot.
+            - Auto-connect OFF restores the last manual state.
+            - Boot delay reduced from 40 seconds to 20 seconds.
+            - Connection attempts wait for a usable Android network before running.
+            - Opening the app provides an extra restore opportunity if background startup was blocked.
+            - Keeps the v1.4 TV/Mobile layouts, branding and permanent signing.
 
-            Important: v1.4 uses a new permanent release signing key. Because previous builds used temporary debug signing, uninstall the old build once before installing v1.4. Future signed versions can update v1.4 in place.
+            v1.5 uses the same permanent release signing key as v1.4 and should install directly over v1.4.
           files: out/*.apk
