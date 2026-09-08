@@ -7,6 +7,7 @@ object AppPreferences {
     private const val KEY_AUTO_CONNECT = "auto_connect_boot"
     private const val KEY_PORT = "selected_port"
     private const val KEY_UI_MODE = "ui_mode"
+    private const val KEY_LAST_MANUAL_CONNECTED = "last_manual_connected"
 
     const val MODE_TV = "tv"
     const val MODE_MOBILE = "mobile"
@@ -20,6 +21,25 @@ object AppPreferences {
     fun setAutoConnectOnBoot(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_AUTO_CONNECT, enabled).apply()
     }
+
+    /**
+     * Remembers the user's most recent explicit Connect/Disconnect choice.
+     * Automatic reconnects never change this value.
+     */
+    fun lastManualConnected(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_LAST_MANUAL_CONNECTED, false)
+
+    fun setLastManualConnected(context: Context, connected: Boolean) {
+        prefs(context).edit().putBoolean(KEY_LAST_MANUAL_CONNECTED, connected).apply()
+    }
+
+    /**
+     * Desired startup state:
+     * - Auto-connect ON always requests WARP ON.
+     * - Auto-connect OFF restores the user's last manual state.
+     */
+    fun shouldRestoreConnectedState(context: Context): Boolean =
+        autoConnectOnBoot(context) || lastManualConnected(context)
 
     fun selectedPort(context: Context): Int =
         prefs(context).getInt(KEY_PORT, 4500)

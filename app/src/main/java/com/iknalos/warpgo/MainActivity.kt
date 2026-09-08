@@ -1,7 +1,10 @@
 package com.iknalos.warpgo
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.Bundle
 import android.text.SpannableString
@@ -62,6 +65,10 @@ class MainActivity : AppCompatActivity() {
         if (::toggleButton.isInitialized) {
             refreshState()
             if (isTvMode) focusToggleButton()
+            // Second-chance restore: if Android/Fire OS blocked the background
+            // boot attempt, opening Warp Go gives the desired ON state another
+            // chance without showing the VPN permission dialog.
+            maybeRestoreDesiredState()
         }
     }
 
@@ -159,8 +166,12 @@ class MainActivity : AppCompatActivity() {
     private fun onToggle() {
         if (busy) return
         if (WarpManager.isUp(this)) {
+            // Remember the user's explicit choice, independently of the
+            // Auto-connect switch.
+            AppPreferences.setLastManualConnected(this, false)
             disconnect()
         } else {
+            AppPreferences.setLastManualConnected(this, true)
             setBusy(true)
             setStatus("Connecting…", StatusState.CONNECTING)
             val intent = VpnService.prepare(this)
@@ -170,6 +181,46 @@ class MainActivity : AppCompatActivity() {
                 doConnect()
             }
         }
+    }
+
+
+    private fun maybeRestoreDesiredState() {
+        if (busy) return
+        if (!AppPreferences.shouldRestoreConnectedState(this)) return
+        if (!WarpManager.isRegistered(this)) return
+        if (WarpManager.isUp(this)) return
+        if (!hasUsableNetwork()) return
+
+        // Never launch the Android VPN permission UI automatically. One manual
+        // connection must have granted permission previously.
+        if (VpnService.prepare(this) != null) return
+
+        setBusy(true)
+        setStatus("Restoring connection…", StatusState.CONNECTING)
+        val port = AppPreferences.selectedPort(this)
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    WarpManager.connect(applicationContext, port)
+                }
+                refreshState()
+            } catch (_: Exception) {
+                // Leave the app usable. The boot foreground service has its own
+                // retry loop; this path is deliberately just an extra chance.
+                refreshState()
+            } finally {
+                setBusy(false)
+                refreshButtonOnly()
+                if (isTvMode) focusToggleButton()
+            }
+        }
+    }
+
+    private fun hasUsableNetwork(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     private fun doConnect() {
