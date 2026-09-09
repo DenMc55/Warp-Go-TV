@@ -11,7 +11,6 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.View
-import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -31,13 +30,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var progress: ProgressBar
-    private lateinit var toggleButton: Button
+    private lateinit var toggleButton: TextView
     private lateinit var portGroup: RadioGroup
     private lateinit var port4500: RadioButton
     private lateinit var port2408: RadioButton
     private lateinit var port500: RadioButton
     private lateinit var autoConnectSwitch: MaterialSwitch
-    private lateinit var resetButton: Button
+    private lateinit var resetButton: TextView
 
     private val vpnPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -78,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         val modeGroup = findViewById<RadioGroup>(R.id.modeGroup)
         val modeTv = findViewById<RadioButton>(R.id.modeTv)
         val modeMobile = findViewById<RadioButton>(R.id.modeMobile)
-        val okButton = findViewById<Button>(R.id.modeOkButton)
+        val okButton = findViewById<TextView>(R.id.modeOkButton)
 
         // Deliberately default to TV. On a television the mobile layout can look
         // usable while hiding TV-only controls below the fold; the reverse is obvious.
