@@ -273,14 +273,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildLegacyMainInterface() {
-        val background = Color.rgb(5, 27, 51)
+        val backgroundColor = Color.rgb(5, 27, 51)
         val primary = Color.rgb(247, 249, 252)
         val secondary = Color.rgb(184, 195, 209)
         val orange = Color.rgb(246, 130, 31)
 
         val scroll = ScrollView(this).apply {
             isFillViewport = true
-            setBackgroundColor(background)
+            setBackgroundColor(backgroundColor)
         }
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -360,7 +360,7 @@ class MainActivity : AppCompatActivity() {
             textSize = 18f
             setTextColor(primary)
             setTypeface(typeface, Typeface.BOLD)
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(topMargin) })
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { this.topMargin = dp(topMargin) })
 
         parent.addView(TextView(this).apply {
             text = if (isTvMode) "Change only if your network blocks WARP." else "If a network blocks WARP, try another port. 2408 is the default; 4500 and 500 are usually left open by firewalls."
@@ -404,7 +404,7 @@ class MainActivity : AppCompatActivity() {
                 textSize = 20f
                 setTextColor(primary)
                 setTypeface(typeface, Typeface.BOLD)
-            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(topMargin) })
+            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { this.topMargin = dp(topMargin) })
         }
 
         autoConnectSwitch = SwitchCompat(this).apply {
