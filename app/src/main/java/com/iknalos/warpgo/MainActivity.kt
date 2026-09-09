@@ -3,9 +3,6 @@ package com.iknalos.warpgo
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.VpnService
@@ -16,18 +13,18 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CompoundButton
-import android.widget.ImageView
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
+import android.widget.Switch
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,13 +37,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var progress: ProgressBar
-    private lateinit var toggleButton: TextView
+    private lateinit var toggleButton: Button
     private lateinit var portGroup: RadioGroup
     private lateinit var port4500: RadioButton
     private lateinit var port2408: RadioButton
     private lateinit var port500: RadioButton
     private lateinit var autoConnectSwitch: CompoundButton
-    private lateinit var resetButton: TextView
+    private lateinit var resetButton: Button
 
     private val vpnPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -82,98 +79,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFirstRunSetup() {
-        // Fire OS 6 (Android 7.1/API 25) has a resource-inflater bug that can
-        // crash while parsing the XML first-run screen. Build this one small
-        // screen entirely in code so no XML view inflation is involved.
-        val scroll = ScrollView(this).apply {
-            isFillViewport = true
-            setBackgroundColor(Color.rgb(7, 24, 46))
+        if (isLegacyFireOs()) {
+            showLegacyFirstRunSetup()
+            return
         }
 
-        val column = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(32), dp(24), dp(32), dp(28))
-        }
-        scroll.addView(
-            column,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        )
+        setContentView(R.layout.activity_setup)
 
-        val logo = ImageView(this).apply {
-            setImageResource(R.drawable.warp_go_logo)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            contentDescription = "Warp Go TV"
-        }
-        column.addView(logo, linearParams(180, 180, top = 8))
-
-        val title = setupText("Choose interface", 24f, true).apply {
-            gravity = Gravity.CENTER
-        }
-        column.addView(title, wrapParams(top = 8))
-
-        val help = setupText("Select the layout for this device.", 14f, false, secondary = true).apply {
-            gravity = Gravity.CENTER
-        }
-        column.addView(help, wrapParams(top = 6))
-
-        val modeGroup = RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
-        }
-        column.addView(
-            modeGroup,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = dp(24) }
-        )
-
-        val modeTv = setupRadio("TV").apply {
-            id = View.generateViewId()
-            isChecked = true
-        }
-        val modeMobile = setupRadio("Mobile").apply {
-            id = View.generateViewId()
-        }
-        modeGroup.addView(modeTv, radioParams())
-        modeGroup.addView(modeMobile, radioParams(top = 8))
-
-        val okButton = TextView(this).apply {
-            text = "OK"
-            textSize = 20f
-            gravity = Gravity.CENTER
-            setTextColor(Color.rgb(247, 249, 252))
-            setTypeface(typeface, Typeface.BOLD)
-            isClickable = true
-            isFocusable = true
-            background = roundedBackground(Color.rgb(246, 130, 31), 32)
-            setOnFocusChangeListener { view, focused ->
-                (view as TextView).apply {
-                    if (focused) {
-                        background = roundedBackground(Color.rgb(255, 213, 74), 32)
-                        setTextColor(Color.rgb(23, 32, 42))
-                    } else {
-                        background = roundedBackground(Color.rgb(246, 130, 31), 32)
-                        setTextColor(Color.rgb(247, 249, 252))
-                    }
-                }
-            }
-        }
-        column.addView(
-            okButton,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(64)
-            ).apply { topMargin = dp(24) }
-        )
-
-        setContentView(scroll)
+        val modeGroup = findViewById<RadioGroup>(R.id.modeGroup)
+        val modeTv = findViewById<RadioButton>(R.id.modeTv)
+        val modeMobile = findViewById<RadioButton>(R.id.modeMobile)
+        val okButton = findViewById<Button>(R.id.modeOkButton)
 
         // Deliberately default to TV. On a television the mobile layout can look
         // usable while hiding TV-only controls below the fold; the reverse is obvious.
+        modeTv.isChecked = true
         modeTv.requestFocus()
 
         okButton.setOnClickListener {
@@ -187,79 +107,79 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupText(
-        value: String,
-        sizeSp: Float,
-        bold: Boolean,
-        secondary: Boolean = false
-    ): TextView = TextView(this).apply {
-        text = value
-        textSize = sizeSp
-        setTextColor(
-            if (secondary) Color.rgb(184, 195, 209) else Color.rgb(247, 249, 252)
-        )
-        if (bold) setTypeface(typeface, Typeface.BOLD)
-    }
+    private fun showLegacyFirstRunSetup() {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(40), dp(40), dp(40), dp(40))
+            setBackgroundColor(Color.rgb(4, 35, 63))
+        }
 
-    private fun setupRadio(label: String): RadioButton = RadioButton(this).apply {
-        text = label
-        textSize = 20f
-        gravity = Gravity.CENTER_VERTICAL
-        setTextColor(Color.rgb(247, 249, 252))
-        setPadding(dp(16), 0, dp(16), 0)
-        isFocusable = true
-        buttonTintList = ColorStateList.valueOf(Color.rgb(246, 130, 31))
-        setOnFocusChangeListener { view, focused ->
-            view.background = if (focused) {
-                roundedStrokeBackground(Color.TRANSPARENT, Color.rgb(255, 213, 74), 2, 10)
+        root.addView(TextView(this).apply {
+            text = "Warp Go TV"
+            textSize = 30f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+
+        root.addView(TextView(this).apply {
+            text = "Choose interface"
+            textSize = 18f
+            setTextColor(Color.LTGRAY)
+            gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(12)
+        })
+
+        val modeGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+        }
+        val modeTv = RadioButton(this).apply {
+            id = View.generateViewId()
+            text = "TV"
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            isChecked = true
+        }
+        val modeMobile = RadioButton(this).apply {
+            id = View.generateViewId()
+            text = "Mobile"
+            textSize = 22f
+            setTextColor(Color.WHITE)
+        }
+        modeGroup.addView(modeTv)
+        modeGroup.addView(modeMobile)
+        root.addView(modeGroup, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(28)
+        })
+
+        val okButton = Button(this).apply {
+            text = "OK"
+            textSize = 20f
+            isAllCaps = false
+        }
+        root.addView(okButton, LinearLayout.LayoutParams(dp(260), dp(64)).apply {
+            topMargin = dp(28)
+        })
+
+        setContentView(root)
+        modeTv.requestFocus()
+
+        okButton.setOnClickListener {
+            val mode = if (modeGroup.checkedRadioButtonId == modeMobile.id) {
+                AppPreferences.MODE_MOBILE
             } else {
-                ColorDrawable(Color.TRANSPARENT)
+                AppPreferences.MODE_TV
             }
+            AppPreferences.setUiMode(this, mode)
+            showSelectedInterface()
         }
     }
-
-    private fun radioParams(top: Int = 0) = LinearLayout.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        dp(64)
-    ).apply { topMargin = dp(top) }
-
-    private fun linearParams(widthDp: Int, heightDp: Int, top: Int = 0) =
-        LinearLayout.LayoutParams(dp(widthDp), dp(heightDp)).apply { topMargin = dp(top) }
-
-    private fun wrapParams(top: Int = 0) = LinearLayout.LayoutParams(
-        ViewGroup.LayoutParams.WRAP_CONTENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT
-    ).apply { topMargin = dp(top) }
-
-    private fun roundedBackground(color: Int, radiusDp: Int) = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        setColor(color)
-        cornerRadius = dp(radiusDp).toFloat()
-    }
-
-    private fun roundedStrokeBackground(
-        fill: Int,
-        stroke: Int,
-        strokeDp: Int,
-        radiusDp: Int
-    ) = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        setColor(fill)
-        setStroke(dp(strokeDp), stroke)
-        cornerRadius = dp(radiusDp).toFloat()
-    }
-
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun showSelectedInterface() {
         isTvMode = AppPreferences.uiMode(this) == AppPreferences.MODE_TV
 
-        // Fire OS 6 / Android 7.1 (API 25) has a broken binary-XML string-pool
-        // parser on some first-generation Fire TV Stick 4K firmware. The same
-        // app works once XML inflation is avoided, so API 25 gets a fully
-        // programmatic compatibility UI. Newer devices keep the normal XML UI.
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1) {
+        if (isLegacyFireOs()) {
             buildLegacyMainInterface()
         } else {
             setContentView(if (isTvMode) R.layout.activity_tv else R.layout.activity_mobile)
@@ -273,172 +193,138 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildLegacyMainInterface() {
-        val backgroundColor = Color.rgb(5, 27, 51)
-        val primary = Color.rgb(247, 249, 252)
-        val secondary = Color.rgb(184, 195, 209)
-        val orange = Color.rgb(246, 130, 31)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(36), dp(28), dp(36), dp(40))
+            setBackgroundColor(Color.rgb(4, 35, 63))
+        }
+
+        content.addView(TextView(this).apply {
+            text = if (isTvMode) "Warp Go TV" else "Warp Go"
+            textSize = if (isTvMode) 30f else 26f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+
+        content.addView(TextView(this).apply {
+            text = "Cloudflare WARP tunnel"
+            textSize = 17f
+            setTextColor(Color.LTGRAY)
+            gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(4)
+        })
+
+        statusText = TextView(this).apply {
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+        }
+        content.addView(statusText, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(24)
+        })
+
+        progress = ProgressBar(this).apply {
+            visibility = View.GONE
+        }
+        content.addView(progress, LinearLayout.LayoutParams(dp(42), dp(42)).apply {
+            topMargin = dp(8)
+        })
+
+        toggleButton = Button(this).apply {
+            text = "Connect"
+            textSize = 22f
+            isAllCaps = false
+            isFocusable = true
+        }
+        content.addView(toggleButton, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(72)).apply {
+            topMargin = dp(12)
+        })
+
+        content.addView(TextView(this).apply {
+            text = "Connection port"
+            textSize = 20f
+            setTextColor(Color.WHITE)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(28)
+        })
+
+        content.addView(TextView(this).apply {
+            text = "Change only if your network blocks WARP."
+            textSize = 15f
+            setTextColor(Color.LTGRAY)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(4)
+        })
+
+        portGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+        }
+        port4500 = legacyPortButton("4500 (recommended)")
+        port2408 = legacyPortButton("2408 (WARP default)")
+        port500 = legacyPortButton("500")
+        portGroup.addView(port4500)
+        portGroup.addView(port2408)
+        portGroup.addView(port500)
+        content.addView(portGroup, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(12)
+        })
+
+        autoConnectSwitch = Switch(this).apply {
+            text = "Auto-connect on boot"
+            textSize = 18f
+            setTextColor(Color.WHITE)
+            isFocusable = true
+        }
+        content.addView(autoConnectSwitch, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(22)
+        })
+
+        content.addView(TextView(this).apply {
+            text = "Requires one manual connection first."
+            textSize = 14f
+            setTextColor(Color.LTGRAY)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(4)
+        })
+
+        resetButton = Button(this).apply {
+            text = "Reset WARP account"
+            textSize = 18f
+            isAllCaps = false
+            isFocusable = true
+        }
+        content.addView(resetButton, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(58)).apply {
+            topMargin = dp(22)
+        })
+
+        content.addView(TextView(this).apply {
+            text = "Port changes take effect on the next connection."
+            textSize = 14f
+            setTextColor(Color.LTGRAY)
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(12)
+        })
 
         val scroll = ScrollView(this).apply {
             isFillViewport = true
-            setBackgroundColor(backgroundColor)
+            addView(content, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         }
-        val column = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(if (isTvMode) 36 else 24), dp(20), dp(if (isTvMode) 36 else 24), dp(28))
-        }
-        scroll.addView(column, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-
-        column.addView(TextView(this).apply {
-            text = if (isTvMode) "Warp Go TV" else "Warp Go"
-            textSize = if (isTvMode) 30f else 32f
-            setTextColor(primary)
-            setTypeface(typeface, Typeface.BOLD)
-            gravity = Gravity.CENTER
-        }, wrapParams(top = 4))
-
-        column.addView(TextView(this).apply {
-            text = "Cloudflare WARP tunnel"
-            textSize = 15f
-            setTextColor(secondary)
-            gravity = Gravity.CENTER
-        }, wrapParams(top = 4))
-
-        statusText = TextView(this).apply {
-            text = "●  Disconnected"
-            textSize = if (isTvMode) 24f else 22f
-            setTextColor(primary)
-            setTypeface(typeface, Typeface.BOLD)
-            gravity = Gravity.CENTER
-        }
-        column.addView(statusText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(28) })
-
-        progress = ProgressBar(this).apply { visibility = View.GONE }
-        column.addView(progress, wrapParams(top = 6))
-
-        toggleButton = TextView(this).apply {
-            text = "Connect"
-            textSize = 20f
-            gravity = Gravity.CENTER
-            setTextColor(primary)
-            setTypeface(typeface, Typeface.BOLD)
-            isClickable = true
-            isFocusable = isTvMode
-            background = roundedBackground(if (isTvMode) Color.rgb(255, 213, 74) else orange, 34)
-        }
-        column.addView(toggleButton, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(if (isTvMode) 66 else 66)).apply { topMargin = dp(22) })
-
-        if (isTvMode) {
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.TOP
-            }
-            column.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(30) })
-
-            val left = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            val right = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            row.addView(left, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(28) })
-            row.addView(right, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            buildLegacyPortSection(left, primary, secondary)
-            buildLegacyControlSection(right, primary, secondary, orange)
-        } else {
-            buildLegacyPortSection(column, primary, secondary, topMargin = 34)
-            buildLegacyControlSection(column, primary, secondary, orange, topMargin = 20)
-        }
-
         setContentView(scroll)
     }
 
-    private fun buildLegacyPortSection(
-        parent: LinearLayout,
-        primary: Int,
-        secondary: Int,
-        topMargin: Int = 0
-    ) {
-        parent.addView(TextView(this).apply {
-            text = "Connection port"
-            textSize = 18f
-            setTextColor(primary)
-            setTypeface(typeface, Typeface.BOLD)
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { this.topMargin = dp(topMargin) })
-
-        parent.addView(TextView(this).apply {
-            text = if (isTvMode) "Change only if your network blocks WARP." else "If a network blocks WARP, try another port. 2408 is the default; 4500 and 500 are usually left open by firewalls."
-            textSize = 13f
-            setTextColor(secondary)
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(4) })
-
-        portGroup = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL }
-        parent.addView(portGroup, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(10) })
-
-        fun portRadio(label: String): RadioButton = RadioButton(this).apply {
-            id = View.generateViewId()
-            text = label
-            textSize = 17f
-            gravity = Gravity.CENTER_VERTICAL
-            setTextColor(primary)
-            setPadding(dp(8), 0, dp(8), 0)
-            isFocusable = isTvMode
-            buttonTintList = ColorStateList.valueOf(Color.rgb(246, 130, 31))
-        }
-
-        port4500 = portRadio("4500 (recommended)")
-        port2408 = portRadio("2408 (WARP default)")
-        port500 = portRadio("500")
-        portGroup.addView(port4500, radioParams())
-        portGroup.addView(port2408, radioParams())
-        portGroup.addView(port500, radioParams())
-        port4500.isChecked = true
+    private fun legacyPortButton(label: String): RadioButton = RadioButton(this).apply {
+        id = View.generateViewId()
+        text = label
+        textSize = 18f
+        setTextColor(Color.WHITE)
+        isFocusable = true
     }
 
-    private fun buildLegacyControlSection(
-        parent: LinearLayout,
-        primary: Int,
-        secondary: Int,
-        orange: Int,
-        topMargin: Int = 0
-    ) {
-        if (isTvMode) {
-            parent.addView(TextView(this).apply {
-                text = "Controls"
-                textSize = 20f
-                setTextColor(primary)
-                setTypeface(typeface, Typeface.BOLD)
-            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { this.topMargin = dp(topMargin) })
-        }
+    private fun isLegacyFireOs(): Boolean = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
 
-        autoConnectSwitch = SwitchCompat(this).apply {
-            text = "Auto-connect on boot"
-            textSize = 17f
-            setTextColor(primary)
-            gravity = Gravity.CENTER_VERTICAL
-            isFocusable = isTvMode
-            setPadding(dp(8), 0, dp(8), 0)
-        }
-        parent.addView(autoConnectSwitch as View, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)).apply { topMargin = dp(if (isTvMode) 8 else topMargin) })
-
-        parent.addView(TextView(this).apply {
-            text = "Requires one manual connection first."
-            textSize = 12f
-            setTextColor(secondary)
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(3) })
-
-        resetButton = TextView(this).apply {
-            text = "Reset WARP account"
-            textSize = 16f
-            setTextColor(orange)
-            gravity = Gravity.CENTER
-            isClickable = true
-            isFocusable = isTvMode
-        }
-        parent.addView(resetButton, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(52)).apply { topMargin = dp(14) })
-
-        parent.addView(TextView(this).apply {
-            text = "Port changes take effect on the next connection."
-            textSize = 12f
-            setTextColor(secondary)
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(6) })
-    }
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun bindMainViews() {
         statusText = findViewById(R.id.statusText)
@@ -448,7 +334,7 @@ class MainActivity : AppCompatActivity() {
         port4500 = findViewById(R.id.port4500)
         port2408 = findViewById(R.id.port2408)
         port500 = findViewById(R.id.port500)
-        autoConnectSwitch = findViewById(R.id.autoConnectSwitch)
+        autoConnectSwitch = findViewById<CompoundButton>(R.id.autoConnectSwitch)
         resetButton = findViewById(R.id.resetButton)
     }
 
@@ -483,7 +369,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun refreshState() {
         val up = WarpManager.isUp(this)
-        toggleButton.text = if (up) "Disconnect" else "Connect"
+        toggleButton.text = if (isLegacyFireOs()) { if (up) "Disconnect" else "Connect" } else { getString(if (up) R.string.disconnect else R.string.connect) }
         if (up) {
             setStatus("Connected  ·  port ${selectedPort()}", StatusState.CONNECTED)
         } else {
@@ -591,7 +477,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshButtonOnly() {
-        toggleButton.text = if (WarpManager.isUp(this)) "Disconnect" else "Connect"
+        val up = WarpManager.isUp(this)
+        toggleButton.text = if (isLegacyFireOs()) {
+            if (up) "Disconnect" else "Connect"
+        } else {
+            getString(if (up) R.string.disconnect else R.string.connect)
+        }
     }
 
     private fun setBusy(value: Boolean) {
@@ -610,18 +501,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateToggleFocusStyle(hasFocus: Boolean) {
-        val color = getColor(if (hasFocus) R.color.focus_yellow else R.color.warp_orange)
+        val color = if (isLegacyFireOs()) {
+            if (hasFocus) Color.rgb(255, 215, 64) else Color.rgb(255, 128, 24)
+        } else {
+            getColor(if (hasFocus) R.color.focus_yellow else R.color.warp_orange)
+        }
         toggleButton.backgroundTintList = ColorStateList.valueOf(color)
         toggleButton.setTextColor(
-            getColor(if (hasFocus) R.color.focus_text_dark else R.color.text_primary)
+            if (isLegacyFireOs()) {
+                if (hasFocus) Color.rgb(18, 26, 35) else Color.WHITE
+            } else {
+                getColor(if (hasFocus) R.color.focus_text_dark else R.color.text_primary)
+            }
         )
     }
 
     private fun setStatus(text: String, state: StatusState) {
-        val dotColor = when (state) {
-            StatusState.CONNECTED -> getColor(R.color.status_green)
-            StatusState.CONNECTING -> getColor(R.color.status_amber)
-            StatusState.DISCONNECTED, StatusState.ERROR -> getColor(R.color.status_red)
+        val dotColor = if (isLegacyFireOs()) {
+            when (state) {
+                StatusState.CONNECTED -> Color.rgb(46, 204, 113)
+                StatusState.CONNECTING -> Color.rgb(255, 193, 7)
+                StatusState.DISCONNECTED, StatusState.ERROR -> Color.rgb(255, 76, 76)
+            }
+        } else {
+            when (state) {
+                StatusState.CONNECTED -> getColor(R.color.status_green)
+                StatusState.CONNECTING -> getColor(R.color.status_amber)
+                StatusState.DISCONNECTED, StatusState.ERROR -> getColor(R.color.status_red)
+            }
         }
         val display = SpannableString("●  $text")
         display.setSpan(
