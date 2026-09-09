@@ -3,6 +3,9 @@ package com.iknalos.warpgo
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.VpnService
@@ -10,10 +13,15 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -72,16 +80,98 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFirstRunSetup() {
-        setContentView(R.layout.activity_setup)
+        // Fire OS 6 (Android 7.1/API 25) has a resource-inflater bug that can
+        // crash while parsing the XML first-run screen. Build this one small
+        // screen entirely in code so no XML view inflation is involved.
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            setBackgroundColor(Color.rgb(7, 24, 46))
+        }
 
-        val modeGroup = findViewById<RadioGroup>(R.id.modeGroup)
-        val modeTv = findViewById<RadioButton>(R.id.modeTv)
-        val modeMobile = findViewById<RadioButton>(R.id.modeMobile)
-        val okButton = findViewById<TextView>(R.id.modeOkButton)
+        val column = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(32), dp(24), dp(32), dp(28))
+        }
+        scroll.addView(
+            column,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        val logo = ImageView(this).apply {
+            setImageResource(R.drawable.warp_go_logo)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            contentDescription = "Warp Go TV"
+        }
+        column.addView(logo, linearParams(180, 180, top = 8))
+
+        val title = setupText("Choose interface", 24f, true).apply {
+            gravity = Gravity.CENTER
+        }
+        column.addView(title, wrapParams(top = 8))
+
+        val help = setupText("Select the layout for this device.", 14f, false, secondary = true).apply {
+            gravity = Gravity.CENTER
+        }
+        column.addView(help, wrapParams(top = 6))
+
+        val modeGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+        }
+        column.addView(
+            modeGroup,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = dp(24) }
+        )
+
+        val modeTv = setupRadio("TV").apply {
+            id = View.generateViewId()
+            isChecked = true
+        }
+        val modeMobile = setupRadio("Mobile").apply {
+            id = View.generateViewId()
+        }
+        modeGroup.addView(modeTv, radioParams())
+        modeGroup.addView(modeMobile, radioParams(top = 8))
+
+        val okButton = TextView(this).apply {
+            text = "OK"
+            textSize = 20f
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(247, 249, 252))
+            setTypeface(typeface, Typeface.BOLD)
+            isClickable = true
+            isFocusable = true
+            background = roundedBackground(Color.rgb(246, 130, 31), 32)
+            setOnFocusChangeListener { view, focused ->
+                (view as TextView).apply {
+                    if (focused) {
+                        background = roundedBackground(Color.rgb(255, 213, 74), 32)
+                        setTextColor(Color.rgb(23, 32, 42))
+                    } else {
+                        background = roundedBackground(Color.rgb(246, 130, 31), 32)
+                        setTextColor(Color.rgb(247, 249, 252))
+                    }
+                }
+            }
+        }
+        column.addView(
+            okButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(64)
+            ).apply { topMargin = dp(24) }
+        )
+
+        setContentView(scroll)
 
         // Deliberately default to TV. On a television the mobile layout can look
         // usable while hiding TV-only controls below the fold; the reverse is obvious.
-        modeTv.isChecked = true
         modeTv.requestFocus()
 
         okButton.setOnClickListener {
@@ -94,6 +184,71 @@ class MainActivity : AppCompatActivity() {
             showSelectedInterface()
         }
     }
+
+    private fun setupText(
+        value: String,
+        sizeSp: Float,
+        bold: Boolean,
+        secondary: Boolean = false
+    ): TextView = TextView(this).apply {
+        text = value
+        textSize = sizeSp
+        setTextColor(
+            if (secondary) Color.rgb(184, 195, 209) else Color.rgb(247, 249, 252)
+        )
+        if (bold) setTypeface(typeface, Typeface.BOLD)
+    }
+
+    private fun setupRadio(label: String): RadioButton = RadioButton(this).apply {
+        text = label
+        textSize = 20f
+        gravity = Gravity.CENTER_VERTICAL
+        setTextColor(Color.rgb(247, 249, 252))
+        setPadding(dp(16), 0, dp(16), 0)
+        isFocusable = true
+        buttonTintList = ColorStateList.valueOf(Color.rgb(246, 130, 31))
+        setOnFocusChangeListener { view, focused ->
+            view.background = if (focused) {
+                roundedStrokeBackground(Color.TRANSPARENT, Color.rgb(255, 213, 74), 2, 10)
+            } else {
+                ColorDrawable(Color.TRANSPARENT)
+            }
+        }
+    }
+
+    private fun radioParams(top: Int = 0) = LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(64)
+    ).apply { topMargin = dp(top) }
+
+    private fun linearParams(widthDp: Int, heightDp: Int, top: Int = 0) =
+        LinearLayout.LayoutParams(dp(widthDp), dp(heightDp)).apply { topMargin = dp(top) }
+
+    private fun wrapParams(top: Int = 0) = LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT
+    ).apply { topMargin = dp(top) }
+
+    private fun roundedBackground(color: Int, radiusDp: Int) = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        setColor(color)
+        cornerRadius = dp(radiusDp).toFloat()
+    }
+
+    private fun roundedStrokeBackground(
+        fill: Int,
+        stroke: Int,
+        strokeDp: Int,
+        radiusDp: Int
+    ) = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        setColor(fill)
+        setStroke(dp(strokeDp), stroke)
+        cornerRadius = dp(radiusDp).toFloat()
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun showSelectedInterface() {
         isTvMode = AppPreferences.uiMode(this) == AppPreferences.MODE_TV
