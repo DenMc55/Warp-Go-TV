@@ -55,6 +55,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    @Deprecated("Legacy API-25 VPN permission result")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == LEGACY_VPN_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                doConnect()
+            } else {
+                setStatus("VPN permission denied", StatusState.ERROR)
+                setBusy(false)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -385,21 +398,43 @@ class MainActivity : AppCompatActivity() {
 
     private fun onToggle() {
         if (busy) return
-        if (WarpManager.isUp(this)) {
+
+        val currentlyUp = try {
+            WarpManager.isUp(this)
+        } catch (t: Throwable) {
+            setStatus("VPN backend error: ${shortError(t)}", StatusState.ERROR)
+            return
+        }
+
+        if (currentlyUp) {
             // Remember the user's explicit choice, independently of the
             // Auto-connect switch.
             AppPreferences.setLastManualConnected(this, false)
             disconnect()
-        } else {
-            AppPreferences.setLastManualConnected(this, true)
-            setBusy(true)
-            setStatus("Connecting…", StatusState.CONNECTING)
+            return
+        }
+
+        AppPreferences.setLastManualConnected(this, true)
+        setBusy(true)
+        setStatus("Connecting…", StatusState.CONNECTING)
+
+        try {
             val intent = VpnService.prepare(this)
             if (intent != null) {
-                vpnPermission.launch(intent)
+                // Fire OS 6 / API 25 is happier with the platform's original
+                // activity-result path for the VPN consent dialog.
+                if (isLegacyFireOs()) {
+                    @Suppress("DEPRECATION")
+                    startActivityForResult(intent, LEGACY_VPN_REQUEST)
+                } else {
+                    vpnPermission.launch(intent)
+                }
             } else {
                 doConnect()
             }
+        } catch (t: Throwable) {
+            setBusy(false)
+            setStatus("VPN setup failed: ${shortError(t)}", StatusState.ERROR)
         }
     }
 
@@ -450,8 +485,8 @@ class MainActivity : AppCompatActivity() {
             try {
                 withContext(Dispatchers.IO) { WarpManager.connect(applicationContext, port) }
                 setStatus("Connected  ·  port $port", StatusState.CONNECTED)
-            } catch (e: Exception) {
-                setStatus("Failed: ${e.message ?: "unknown error"}", StatusState.ERROR)
+            } catch (t: Throwable) {
+                setStatus("Failed: ${shortError(t)}", StatusState.ERROR)
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
@@ -466,8 +501,8 @@ class MainActivity : AppCompatActivity() {
             try {
                 withContext(Dispatchers.IO) { WarpManager.disconnect(applicationContext) }
                 setStatus("Disconnected", StatusState.DISCONNECTED)
-            } catch (e: Exception) {
-                setStatus("Error: ${e.message ?: "unknown error"}", StatusState.ERROR)
+            } catch (t: Throwable) {
+                setStatus("Error: ${shortError(t)}", StatusState.ERROR)
             } finally {
                 setBusy(false)
                 refreshButtonOnly()
@@ -539,6 +574,16 @@ class MainActivity : AppCompatActivity() {
         )
         statusText.text = display
         statusText.setTextColor(Color.WHITE)
+    }
+
+    private fun shortError(t: Throwable): String {
+        val name = t::class.java.simpleName.ifBlank { "Throwable" }
+        val msg = t.message?.replace('\n', ' ')?.take(120)
+        return if (msg.isNullOrBlank()) name else "$name: $msg"
+    }
+
+    companion object {
+        private const val LEGACY_VPN_REQUEST = 701
     }
 
     private enum class StatusState {

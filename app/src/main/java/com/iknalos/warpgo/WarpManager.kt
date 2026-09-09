@@ -64,7 +64,10 @@ object WarpManager {
 
     fun isUp(ctx: Context): Boolean = try {
         backend(ctx).getState(tunnel()) == Tunnel.State.UP
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
+        // Some older Fire OS builds can throw LinkageError/UnsatisfiedLinkError
+        // while initialising the WireGuard backend. Treat that as DOWN here so
+        // the activity can surface a useful error instead of the process dying.
         false
     }
 
