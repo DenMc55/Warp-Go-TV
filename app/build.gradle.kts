@@ -11,8 +11,8 @@ android {
         applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 20
-        versionName = "1.5.5-clean"
+        versionCode = 21
+        versionName = "1.5.6-legacy-connect-fix"
 
         // Optional pre-registered WARP account injected from CI secrets.
         buildConfigField("String", "WARP_PRIVATE_KEY", "\"${System.getenv("WARP_PRIVATE_KEY") ?: ""}\"")
