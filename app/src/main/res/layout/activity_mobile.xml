@@ -51,14 +51,12 @@
             android:layout_marginTop="8dp"
             android:visibility="gone" />
 
-        <TextView
+        <Button
             android:id="@+id/toggleButton"
             android:layout_width="match_parent"
             android:layout_height="66dp"
             android:layout_marginTop="24dp"
             android:background="@drawable/toggle_button_background"
-            android:clickable="true"
-            android:gravity="center"
             android:text="@string/connect"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
@@ -141,13 +139,12 @@
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
 
-        <TextView
+        <Button
             android:id="@+id/resetButton"
+            style="?attr/borderlessButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="18dp"
-            android:clickable="true"
-            android:gravity="center"
             android:text="@string/reset_account"
             android:textAllCaps="false"
             android:textColor="@color/warp_orange"

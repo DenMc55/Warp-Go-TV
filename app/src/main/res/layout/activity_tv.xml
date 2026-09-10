@@ -51,7 +51,7 @@
             android:layout_marginTop="6dp"
             android:visibility="gone" />
 
-        <TextView
+        <Button
             android:id="@+id/toggleButton"
             android:layout_width="match_parent"
             android:layout_height="68dp"
@@ -61,8 +61,6 @@
             android:focusableInTouchMode="false"
             android:focusedByDefault="true"
             android:nextFocusDown="@id/autoConnectSwitch"
-            android:clickable="true"
-            android:gravity="center"
             android:text="@string/connect"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
@@ -206,7 +204,7 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
 
-                <TextView
+                <Button
                     android:id="@+id/resetButton"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
@@ -216,8 +214,6 @@
                     android:focusableInTouchMode="false"
                     android:nextFocusUp="@id/autoConnectSwitch"
                     android:nextFocusLeft="@id/port500"
-                    android:clickable="true"
-                    android:gravity="center"
                     android:text="@string/reset_account"
                     android:textAllCaps="false"
                     android:textColor="@color/warp_orange"
