@@ -1,0 +1,18 @@
+Warp Go TV permanent signing
+============================
+
+v1.4 switches GitHub Actions from temporary debug signing to a permanent release key.
+The private keystore and secret values are NOT included in this public source package.
+
+Before running the v1.4 workflow, add these repository secrets:
+- SIGNING_KEYSTORE_BASE64
+- ANDROID_KEYSTORE_PASSWORD
+- ANDROID_KEY_ALIAS
+- ANDROID_KEY_PASSWORD
+
+Use the values in the separate private signing backup package.
+Keep that private package backed up safely and never commit it to this repository.
+
+Migration:
+Previous v1.3 and older builds used temporary debug signing, so uninstall the old build once before installing v1.4.
+After v1.4 is installed, keep using the same signing key and future versions can update in place.
