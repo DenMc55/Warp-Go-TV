@@ -11,8 +11,8 @@ android {
         applicationId = "com.iknalos.warpgo.tv"
         minSdk = 24
         targetSdk = 35
-        versionCode = 22
-        versionName = "1.5.7-api25-desugar-fix"
+        versionCode = 6
+        versionName = "1.5"
 
         // Optional pre-registered WARP account injected from CI secrets.
         buildConfigField("String", "WARP_PRIVATE_KEY", "\"${System.getenv("WARP_PRIVATE_KEY") ?: ""}\"")
@@ -45,7 +45,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -60,7 +59,6 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
